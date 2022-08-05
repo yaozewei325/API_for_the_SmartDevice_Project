@@ -1,15 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
+
+//utiliser l’Api minimale est suffisante pour un projet de cette échelle
 var builder = WebApplication.CreateBuilder(args);
-//builder.Services.AddDbContext<DeviceDb>(opt => opt.UseInMemoryDatabase("DeviceList"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+//Ajouter mon DbContext au service
 builder.Services.AddDbContext<DeviceDb>(options => options.UseSqlServer(@"Data Source=.\SQLEXPRESS;Initial Catalog=ApiProjetFinal;Integrated Security=True"));
 var app = builder.Build();
 
+//chemin par default
 app.MapGet("/", () => "Hello World!");
 
-//***********controlleur de devices***********************
+
+//***********Controlleur de Smart devices***********************
 app.MapGet("api/smartdevices", async (DeviceDb db) =>
     await db.Devices.ToListAsync());
 
@@ -59,11 +64,11 @@ app.MapDelete("api/smartdevices/{id}", async (int id, DeviceDb db) =>
 });
 
 
-//***********controlleur de factures***********************
+//***********Controlleur de Factures***********************
 app.MapGet("api/factures", async (DeviceDb db) =>
     await db.Factures.ToListAsync());
 
- 
+
 
 app.MapGet("api/factures/{id}", async (int id, DeviceDb db) =>
     await db.Factures.FindAsync(id)
@@ -79,6 +84,8 @@ app.MapPost("api/factures", async (Facture facture, DeviceDb db) =>
     return Results.Created($"api/factures/{facture.Id}", facture);
 });
 
+
+//modifier les factures
 app.MapPut("api/factures/{id}", async (int id, Facture inputFacture, DeviceDb db) =>
 {
     var device = await db.Factures.FindAsync(id);
@@ -100,6 +107,7 @@ app.MapPut("api/factures/{id}", async (int id, Facture inputFacture, DeviceDb db
     return Results.NoContent();
 });
 
+//supprimer les factures
 app.MapDelete("api/factures/{id}", async (int id, DeviceDb db) =>
 {
     if (await db.Factures.FindAsync(id) is Facture facture)
@@ -114,11 +122,11 @@ app.MapDelete("api/factures/{id}", async (int id, DeviceDb db) =>
 
 app.Run();
 
-//Models
+
+
+//Modèles qui reflètent ceux de l’application cliente
 class Device
 {
-
-
     public int Id { get; set; }
     public string? Modele { get; set; }
     public string? Fabriquant { get; set; }
@@ -147,7 +155,7 @@ class Facture
 }
 
 
-//DbContext
+//DbContext utilisant EntityFramework
 class DeviceDb : DbContext
 {
     public DeviceDb(DbContextOptions<DeviceDb> options)
